@@ -21,8 +21,9 @@ const shopItemSchema = new mongoose.Schema({
     min: 0,
   },
   category: {
-    type: [String],
-    required: true,
+      // fix the validation
+      type: [String],
+      validate: v => Array.isArray(v) && v.length > 0,
   },
 });
 
