@@ -3,6 +3,7 @@ const customerRoutes = require("./router/customer");
 require("dotenv").config();
 
 const connectToMongo = require("./db/connection");
+const adminRoutes = require('./routes/admin');
 
 const app = express();
 const port =
@@ -12,11 +13,15 @@ const port =
 
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
-app.use("/api/customers");
+//routers
+app.use("/admin", adminRoutes)
+app.use("/customers");
+
 
 app.listen(port, () => {
   console.log(`Server listening on port ${port}`);
   connectToMongo();
 });
+
 
 module.exports = app;
