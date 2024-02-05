@@ -8,7 +8,7 @@ const shopItemSchema = new mongoose.Schema({
   image: {
     type: String,
     required: true,
-    // defalut: //default img to be decided
+    defalut: "no image provided",
   },
   price: {
     type: Number,
@@ -21,9 +21,9 @@ const shopItemSchema = new mongoose.Schema({
     min: 0,
   },
   category: {
-      // fix the validation
-      type: [String],
-      validate: v => Array.isArray(v) && v.length > 0,
+    type: [String],
+    required: true,
+    validate: (v) => Array.isArray(v) && v.length > 0,
   },
 });
 
