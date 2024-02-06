@@ -7,7 +7,7 @@ const shopItemSchema = new mongoose.Schema({
   },
   image: {
     type: String,
-    //required: true,
+    required: true,
     defalut: "no image provided",
   },
   price: {
