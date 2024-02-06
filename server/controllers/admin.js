@@ -1,4 +1,5 @@
 const itemsModel = require("../models/shopItem");
+const customerModel = require("../models/customer");
 
 // admin add new shop item
 const addNewShopItem = async (req, res) => {
@@ -8,8 +9,18 @@ const addNewShopItem = async (req, res) => {
     res.status(201).json(newShopItem);
   } catch (err) {
     res.status(400).json({ message: err.message });
-  };
+  }
 };
+// test add customer
+// const addCustomer = async (req, res) => {
+//   const newCustomerData = req.body;
+//   try {
+//     const newCustomer = await customerModel.create(newCustomerData);
+//     res.status(201).json(newCustomer);
+//   } catch (err) {
+//     res.status(400).json({ message: err.message });
+//   }
+// };
 
 // admin update shop item
 const updateShopItem = async (req, res) => {
@@ -44,11 +55,13 @@ const removeOneOrManyItems = async (req, res) => {
     if (deleteItems.deletedCount > 0) {
       res.json({ message: `${deleteItems.deletedCount} documents deleted` });
     } else {
-      res.status(422).json({ message: "The Shop Item you are trying to delete wasn't found" });
-    };
+      res.status(422).json({
+        message: "The Shop Item you are trying to delete wasn't found",
+      });
+    }
   } catch (error) {
     res.status(500).json(error.message);
-  };
+  }
 };
 
 // Search shop items based on different properties
@@ -60,13 +73,37 @@ const searchItem = async (req, res) => {
     if (foundItems) {
       res.json(foundItems);
     } else {
-      res.status(422).json({ message: "The Shop Item you are trying to find doesn't exist" });
+      res.status(422).json({
+        message: "The Shop Item you are trying to find doesn't exist",
+      });
     }
   } catch (error) {
     res.status(500).json(error.message);
-  };
+  }
 };
 
+// admin get all customers information
+
+const getCustomerData = async (_, res) => {
+  try {
+    const customers = await customerModel.find({});
+    res.status(200).json(customers);
+  } catch (err) {
+    res.status(422).json({ message: err.message });
+  }
+};
+
+// admin get all orders
+
+const getOrders = async (_, res) => {
+  try {
+
+    const orders = await customerModel.find({}, { orders:1 });
+    res.status(200).json(orders);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
 // For test purpose
 // const getData = async (_, res) => {
 //   try {
@@ -81,5 +118,7 @@ module.exports = {
   addNewShopItem,
   updateShopItem,
   removeOneOrManyItems,
-  searchItem
+  searchItem,
+  getCustomerData,
+  getOrders,
 };
