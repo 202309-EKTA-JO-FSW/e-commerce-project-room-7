@@ -1,5 +1,6 @@
 const itemsModel = require("../models/shopItem");
 const customerModel = require("../models/customer");
+const userModel = require("../models/user");
 
 // admin add new shop item
 const addNewShopItem = async (req, res) => {
@@ -97,13 +98,29 @@ const getCustomerData = async (_, res) => {
 
 const getOrders = async (_, res) => {
   try {
-
-    const orders = await customerModel.find({}, { orders:1 });
+    const orders = await customerModel.find({}, { orders: 1 });
     res.status(200).json(orders);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 };
+
+// create new admin account
+const createAdminAccount = async (req, res) => {
+  const newAdminData = req.body;
+  try {
+    const admin = await userModel.findOne({ email: req.body.email });
+    if (!admin) {
+      userModel.create(newAdminData);
+      return res.status(201).json(newAdminData);
+    } else {
+      return res.status(400).json({ message: "Admin already exists" });
+    }
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+};
+
 // For test purpose
 // const getData = async (_, res) => {
 //   try {
@@ -121,4 +138,5 @@ module.exports = {
   searchItem,
   getCustomerData,
   getOrders,
+  createAdminAccount,
 };

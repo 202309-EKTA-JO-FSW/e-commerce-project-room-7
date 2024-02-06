@@ -10,5 +10,6 @@ router.delete("/remove", adminController.removeOneOrManyItems);
 router.get("/filter", adminController.searchItem);
 router.get("/customers", adminController.getCustomerData);
 router.get("/orders", adminController.getOrders);
+router.post("/new-admin", adminController.createAdminAccount);
 //router.post("/addcustomer", adminController.addCustomer) test
 module.exports = router;
