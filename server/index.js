@@ -15,6 +15,8 @@ const port =
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
+app.get("/", (req, res) => res.json(20));
+
 app.use("/admin", adminRoutes);
 app.use("/customer", customerRoutes);
 
