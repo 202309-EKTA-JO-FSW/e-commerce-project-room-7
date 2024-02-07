@@ -1,8 +1,6 @@
 const express = require("express");
 require("dotenv").config();
 
-const { SECRET_ACCESS_TOKEN } = process.env;
-
 const connectToMongo = require("./db/connection");
 const adminRoutes = require('./routes/admin');
 
@@ -23,5 +21,4 @@ app.listen(port, () => {
 });
 
 
-module.exports = {app, 
-                  SECRET_ACCESS_TOKEN};
+module.exports = app;

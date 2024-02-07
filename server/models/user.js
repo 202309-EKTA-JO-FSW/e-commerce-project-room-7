@@ -2,7 +2,9 @@ const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 const jwt = require ("jsonwebtoken");
 
-const SECRET_ACCESS_TOKEN = require("../index")
+require("dotenv").config();
+
+const { SECRET_ACCESS_TOKEN } = process.env;
 
 const userSchema = new mongoose.Schema({
   firstName: {
@@ -16,12 +18,18 @@ const userSchema = new mongoose.Schema({
     minLength: 3, 
     maxLength: 20 
   },
-  email: { //validate email syntax
-    type: String, 
+  email: {
+    type: String,
     required: true,
     unique: true,
+    trim: true,
     lowercase: true,
-    trim: true, // to ensure consistent data and avoid issues related to extra spaces.
+    validate: {
+      validator: function (value) {
+        return /^[^\s]+@[^\s]+\.[^\s]+$/.test(value);
+      },
+      message: 'Invalid email address format',
+    },
   }, 
   password: {
     type: String,
@@ -39,29 +47,31 @@ const userSchema = new mongoose.Schema({
 },
 { timestamps: true });
 
-userSchema.pre("save", (next) => {
-   const user = this;
+//Hashing the password
+userSchema.pre("save", function (next) {
+  const user = this;
 
-   if(!user.isModified("password"))
-    return next;
+  if (!user.isModified("password")) {
+     return next();
+  };
 
-   bcrypt.genSalt(10, (err, salt) => {
-    if (err) {
-      return next(err);
-    };
-    bcrypt.hash(user.password, salt, (err, hash) => {
-      if (err) {
+  bcrypt.genSalt(10, (err, salt) => {
+     if (err) {
         return next(err);
-      };
-      
-      user.password = hash;
-      next();
-    });
-
-   });    
+     };
+     bcrypt.hash(user.password, salt, (err, hash) => {
+        if (err) {
+           return next(err);
+        };
+        
+        user.password = hash;
+        next();
+     });
+  });  
 });
 
-userSchema.methods.generateAccessJWT = () => {
+// JWT Token method.
+userSchema.methods.generateAccessJWT = function () {
   let payload = {
     id: this._id,
   };
