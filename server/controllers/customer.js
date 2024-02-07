@@ -1,3 +1,7 @@
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+const passwordValidator = require("password-validator");
+const userModel = require("../models/user");
 const customerModel = require("../models/customer");
 const shopItemsModel = require("../models/shopItem");
 const customerController = {};
@@ -114,5 +118,102 @@ customerController.getShopItemInfo = async (req, res) => {
     res.status(422).json({ message: err.message });
   }
 };
+
+//customer auth
+customerController.signup = async (req, res) => {
+  //check if customer exits already
+  try {
+    const userExists = await userModel.findOne(req.body, {});
+    if (!!userExists) throw new Error("user already exists!");
+    const { firstName, lastName, email, gender, password, password2 } =
+      req.body;
+    //validate and create user entries
+    if (password2 !== password) throw new Error("passwords doesn't match");
+    const passwordChecker = new passwordValidator();
+    //password validation schema
+    passwordChecker
+      .is()
+      .min(6)
+      .is()
+      .max(50)
+      .has()
+      .uppercase(1)
+      .has()
+      .lowercase(1)
+      .has()
+      .not()
+      .spaces()
+      .has()
+      .digits(1)
+      .has()
+      .symbols(1);
+
+    //validate password
+    const isPasswordValid = passwordChecker.validate(password);
+    if (!isPasswordValid)
+      throw new Error(passwordChecker.validate(password, { details: true }));
+    //hash the password
+    const hashedPassword = await bcrypt.hash(password, 10);
+    //create the new document for the user
+    const userData = {
+      firstName: firstName,
+      lastName: lastName,
+      email: email,
+      password: hashedPassword,
+      gender: gender,
+    };
+    await userModel.create(userData);
+    await customerModel.create({
+      firstName: firstName,
+      lastName: lastName,
+      email: email,
+      gender: gender,
+    });
+    //give customer token
+    const userDataWithId = await userModel.find(userData);
+    const tokenContent = {
+      userId: userDataWithId._id,
+      isAdmin: userDataWithId.isAdmin,
+    };
+    const accessToken = jwt.sign(tokenContent, process.env.SECRET_KEY, {
+      expiresIn: "1h",
+    });
+    res.json({ accessToken: accessToken });
+    //redirect user to destination
+    res.redirect("/customer/");
+  } catch (err) {
+    res.status(422).json({ message: err.message });
+  }
+};
+
+customerController.signin = async (req, res) => {
+  //check customer credintials
+  const { email, password, rememberMe } = req.body;
+  try {
+    const userExists = await userModel.findOne({ email: email }, {});
+    if (!!!userExists) throw new Error("user doesn't exist");
+    const isPasswordCorrect = await bcrypt.compare(
+      password,
+      userExists.password
+    );
+    if (!isPasswordCorrect)
+      throw new Error("username or password is incorrect!");
+    //give token
+    const tokenContent = {
+      userId: userExists._id,
+      isAdmin: userExists.isAdmin,
+    };
+    const accessToken = jwt.sign(tokenContent, process.env.SECRET_KEY, {
+      expiresIn: rememberMe ? "7d" : "1h",
+    });
+    //redirect
+    res.json({ accessToken: accessToken });
+    res.redirect("/customer/");
+  } catch (err) {
+    res.status(422).json({ message: err.message });
+  }
+};
+//this one requires middleware
+customerController.signout = async (req, res) => {};
 
 module.exports = customerController;

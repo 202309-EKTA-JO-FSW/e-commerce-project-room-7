@@ -19,6 +19,12 @@ const userSchema = new mongoose.Schema({
       message: "Invalid email address format",
     },
   }, //validate email syntax
+  password: {
+    type: String,
+    required: true,
+  },
   gender: { type: String, required: true },
-  isAdmin: { type: Boolean, required: true },
+  isAdmin: { type: Boolean, required: true, default: false },
 });
+
+module.exports = mongoose.model("userModel", userSchema);
