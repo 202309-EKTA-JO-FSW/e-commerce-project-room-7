@@ -4,6 +4,7 @@ const passwordValidator = require("password-validator");
 const userModel = require("../models/user");
 const customerModel = require("../models/customer");
 const shopItemsModel = require("../models/shopItem");
+const tokenBlackListModel = require("../models/tokensBlackList");
 const customerController = {};
 
 customerController.getAllShopItems = async (req, res) => {
@@ -54,6 +55,8 @@ customerController.addItemToCart = async (req, res) => {
   const { id } = req.params;
   const { customerId, quantity } = req.body;
   try {
+    const token = req.headers.authorization?.split(" ")[1];
+    if (!token) res.status(403).end();
     const requiredItem = await shopItemsModel.findById(id);
     if (quantity > requiredItem.availableCount) {
       throw new Error("The available quantity is less than the requested");
@@ -172,8 +175,10 @@ customerController.signup = async (req, res) => {
     //give customer token
     const userDataWithId = await userModel.find(userData);
     const tokenContent = {
-      userId: userDataWithId._id,
-      isAdmin: userDataWithId.isAdmin,
+      user: {
+        userId: userDataWithId._id,
+        isAdmin: userDataWithId.isAdmin,
+      },
     };
     const accessToken = jwt.sign(tokenContent, process.env.SECRET_KEY, {
       expiresIn: "1h",
@@ -200,13 +205,15 @@ customerController.signin = async (req, res) => {
       throw new Error("username or password is incorrect!");
     //give token
     const tokenContent = {
-      userId: userExists._id,
-      isAdmin: userExists.isAdmin,
+      user: {
+        userId: userExists._id,
+        isAdmin: userExists.isAdmin,
+      },
     };
     const accessToken = jwt.sign(tokenContent, process.env.SECRET_KEY, {
       expiresIn: rememberMe ? "7d" : "1h",
     });
-    //redirect
+    //redirects user to another page and send token
     res.json({ accessToken: accessToken });
     res.redirect("/customer/");
   } catch (err) {
@@ -214,6 +221,10 @@ customerController.signin = async (req, res) => {
   }
 };
 //this one requires middleware
-customerController.signout = async (req, res) => {};
+customerController.signout = async (req, res) => {
+  const token = await req.headers.authorization.split(" ")[1];
+  await tokenBlackListModel.create({ token: token });
+  res.redirect("/customer/signin");
+};
 
 module.exports = customerController;
