@@ -6,8 +6,6 @@ const connectToMongo = require("./db/connection");
 const customerRoutes = require("./routes/customer");
 const adminRoutes = require("./routes/admin");
 
-const users = require("./models/user");
-
 const app = express();
 const port =
   process.env.NODE_ENV === "test"
@@ -16,12 +14,10 @@ const port =
 
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
-app.get("/getCustomers", async (req, res) => {
-  const cust = await users.find({});
-  res.json(cust);
-});
-app.use("/admin", adminRoutes);
-app.use("/customer", customerRoutes);
+
+app.use("/admin", adminRoutes)
+app.use("/customer",customerRoutes);
+
 
 app.listen(port, () => {
   console.log(`Server listening on port ${port}`);
