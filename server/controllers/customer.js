@@ -136,6 +136,30 @@ customerController.getShopItemInfo = async (req, res) => {
   }
 };
 
+customerController.getOrders = async (req, res) => {
+  if (req.user.isAdmin) res.status(403).end();
+  const customerId = await getCustomerId(req.user.userId);
+  const customer = await customerModel.findById(customerId);
+  res.status(200).json(customer.orders);
+};
+
+customerController.updateProfile = async (req, res) => {
+  if (req.user.isAdmin) res.status(403).end();
+  const updatedInfo = req.body;
+  if (req.body.password) {
+    const hashedPassword = await bcrypt.hash(req.body.password, 10);
+    req.body.password = hashedPassword;
+  }
+  const customerId = await getCustomerId(req.user.userId);
+  const updatedCustomer = await customerModel.findByIdAndUpdate(
+    customerId,
+    updatedInfo,
+    { new: true }
+  );
+  await userModel.findByIdAndUpdate(req.user.userId, updatedInfo);
+  res.json(updatedCustomer);
+};
+
 //customer auth
 customerController.signup = async (req, res) => {
   //check if customer exits already
@@ -204,7 +228,8 @@ customerController.signup = async (req, res) => {
 };
 
 customerController.signin = async (req, res) => {
-  //check customer credintials
+  // check customer credintials
+  if (!req.body) res.status(403).end();
   const { email, password, rememberMe } = req.body;
   try {
     const userExists = await userModel.findOne({ email: email }, {});

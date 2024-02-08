@@ -12,12 +12,13 @@ router.post(
   customerController.checkoutCustomer
   // calcaulte the bill for the customer
 );
-//customer auth
+// customer auth
 
 router.post("/signup", customerController.signup);
 router.post("/signin", customerController.signin);
 router.post("/signout", isAuthenticated, customerController.signout);
-
+router.get("/orders", isAuthenticated, customerController.getOrders);
+router.put("/profile", isAuthenticated, customerController.updateProfile);
 router.post("/:id/cart", isAuthenticated, customerController.addItemToCart); //send item id and quantity in after the cart in the request params
 router.get("/:id", isAuthenticated, customerController.getShopItemInfo); //get information of the item
 
